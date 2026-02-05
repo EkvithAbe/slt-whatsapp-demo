@@ -1,191 +1,173 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{{ config('app.name', 'SLT WhatsApp') }} - Business Messaging Made Simple</title>
 
-    <title>{{ config('app.name', 'SLT WhatsApp') }} - Business Messaging Platform</title>
+        <!-- Fonts -->
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
-
-    <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="font-sans antialiased bg-dark-bg text-text-primary overflow-x-hidden">
-    <!-- Animated Background -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute -top-40 -right-40 w-96 h-96 bg-slt-blue/20 rounded-full blur-3xl animate-pulse"></div>
-        <div class="absolute top-1/2 -left-40 w-96 h-96 bg-slt-green/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
-        <div class="absolute -bottom-40 right-1/3 w-96 h-96 bg-slt-blue/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
-    </div>
-
-    <!-- Navigation -->
-    <nav class="relative z-50 bg-glass-bg backdrop-blur-xl border-b border-glass-border">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="/" class="flex items-center gap-3">
-                        <img src="/images/slt-logo.png" alt="SLT Logo" class="h-10 w-auto" />
-                        <span class="text-text-primary font-semibold text-lg">SLT WhatsApp</span>
-                    </a>
-                </div>
-
-                <div class="flex items-center gap-4">
-                    @auth
-                        <a href="{{ route('chats.index') }}"
-                           class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-slt-blue to-slt-green text-white font-medium hover:opacity-90 transition-all shadow-lg">
-                            Go to Dashboard
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    </head>
+    <body class="font-sans antialiased bg-slt-ink min-h-screen">
+        <!-- Navigation -->
+        <nav class="border-b border-white/10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <a href="/" class="flex items-center gap-3">
+                            <img src="{{ asset('images/slt-logo.png') }}" alt="SLT" class="h-10 w-auto" />
+                            <span class="text-white font-semibold text-lg">SLT WhatsApp</span>
                         </a>
-                    @else
-                        <a href="{{ route('login') }}"
-                           class="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors font-medium">
-                            Sign In
-                        </a>
-                        <a href="{{ route('register') }}"
-                           class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-slt-blue to-slt-green text-white font-medium hover:opacity-90 transition-all shadow-lg">
-                            Get Started
-                        </a>
-                    @endauth
+                    </div>
+                    <div class="flex items-center">
+                        @auth
+                            <a href="{{ url('/chats') }}" class="px-5 py-2 rounded-xl bg-slt-primary text-white hover:bg-slt-primary-600 transition-all">
+                                Go to Dashboard
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="text-slt-muted hover:text-white mr-4 transition-all">
+                                Log in
+                            </a>
+                            @if (Route::has('register'))
+                                <a href="{{ route('register') }}" class="px-5 py-2 rounded-xl bg-slt-primary text-white hover:bg-slt-primary-600 transition-all">
+                                    Get Started
+                                </a>
+                            @endif
+                        @endauth
+                    </div>
                 </div>
             </div>
-        </div>
-    </nav>
+        </nav>
 
-    <!-- Hero Section -->
-    <section class="relative z-10 pt-20 pb-32 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-7xl mx-auto">
+        <!-- Hero Section -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
             <div class="grid lg:grid-cols-2 gap-12 items-center">
-                <div class="text-center lg:text-left">
-                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slt-blue/10 border border-slt-blue/30 mb-6">
-                        <div class="w-2 h-2 rounded-full bg-slt-green animate-pulse"></div>
-                        <span class="text-sm text-slt-blue font-medium">Powered by SLT-Mobitel</span>
+                <!-- Left Content -->
+                <div>
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slt-accent/10 border border-slt-accent/20 mb-8">
+                        <span class="w-2 h-2 rounded-full bg-slt-accent"></span>
+                        <span class="text-slt-accent text-sm font-medium">Powered by SLT-Mobitel</span>
                     </div>
 
-                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
-                        <span class="text-text-primary">Business Messaging</span>
-                        <br />
-                        <span class="bg-gradient-to-r from-slt-blue to-slt-green bg-clip-text text-transparent">Made Simple</span>
+                    <h1 class="text-4xl lg:text-5xl font-bold text-white mb-4">
+                        Business Messaging
+                        <span class="block text-transparent bg-clip-text bg-gradient-to-r from-slt-info via-slt-primary to-slt-accent">
+                            Made Simple
+                        </span>
                     </h1>
 
-                    <p class="text-lg text-text-secondary mb-8 max-w-xl mx-auto lg:mx-0">
+                    <p class="text-lg text-slt-muted mb-8 max-w-lg">
                         Connect with your customers through WhatsApp Business API. Send messages, manage conversations, and grow your business with Sri Lanka's leading telecom provider.
                     </p>
 
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    <div class="flex flex-wrap gap-4 mb-12">
                         @auth
-                            <a href="{{ route('chats.index') }}"
-                               class="px-8 py-4 rounded-2xl bg-gradient-to-r from-slt-blue to-slt-green text-white font-semibold hover:opacity-90 transition-all shadow-xl shadow-slt-blue/30 flex items-center justify-center gap-2">
+                            <a href="{{ url('/chats') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slt-accent text-white hover:opacity-90 transition-all font-medium">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                 </svg>
                                 Open Chats
                             </a>
                         @else
-                            <a href="{{ route('register') }}"
-                               class="px-8 py-4 rounded-2xl bg-gradient-to-r from-slt-blue to-slt-green text-white font-semibold hover:opacity-90 transition-all shadow-xl shadow-slt-blue/30 flex items-center justify-center gap-2">
+                            <a href="{{ route('login') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slt-accent text-white hover:opacity-90 transition-all font-medium">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                 </svg>
-                                Start Free Trial
-                            </a>
-                            <a href="{{ route('login') }}"
-                               class="px-8 py-4 rounded-2xl bg-dark-card border border-glass-border text-text-primary font-semibold hover:bg-glass-bg transition-all flex items-center justify-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-                                </svg>
-                                Sign In
+                                Open Chats
                             </a>
                         @endauth
                     </div>
 
                     <!-- Stats -->
-                    <div class="mt-12 grid grid-cols-3 gap-6">
-                        <div class="text-center lg:text-left">
-                            <div class="text-3xl font-bold text-text-primary">99.9%</div>
-                            <div class="text-sm text-text-secondary">Uptime</div>
+                    <div class="grid grid-cols-3 gap-8">
+                        <div>
+                            <div class="text-3xl font-bold text-white">99.9%</div>
+                            <div class="text-slt-muted text-sm">Uptime</div>
                         </div>
-                        <div class="text-center lg:text-left">
-                            <div class="text-3xl font-bold text-text-primary">24/7</div>
-                            <div class="text-sm text-text-secondary">Support</div>
+                        <div>
+                            <div class="text-3xl font-bold text-white">24/7</div>
+                            <div class="text-slt-muted text-sm">Support</div>
                         </div>
-                        <div class="text-center lg:text-left">
-                            <div class="text-3xl font-bold text-text-primary">10K+</div>
-                            <div class="text-sm text-text-secondary">Messages/Day</div>
+                        <div>
+                            <div class="text-3xl font-bold text-white">10K+</div>
+                            <div class="text-slt-muted text-sm">Messages/Day</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Hero Image / Chat Preview -->
+                <!-- Right Content - Chat Preview -->
                 <div class="relative">
-                    <div class="absolute inset-0 bg-gradient-to-r from-slt-blue/20 to-slt-green/20 rounded-3xl blur-2xl"></div>
-                    <div class="relative bg-glass-bg backdrop-blur-xl rounded-3xl border border-glass-border shadow-2xl overflow-hidden">
+                    <div class="rounded-2xl bg-white/5 border border-white/10 overflow-hidden shadow-slt">
                         <!-- Chat Header -->
-                        <div class="p-4 border-b border-glass-border flex items-center gap-3 bg-dark-card/50">
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-slt-blue to-slt-green flex items-center justify-center text-white font-semibold shadow-lg">
+                        <div class="p-4 border-b border-white/10 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-slt-info flex items-center justify-center text-white font-semibold">
                                 C
                             </div>
-                            <div class="flex-1">
-                                <div class="font-medium text-text-primary">Customer Support</div>
-                                <div class="text-xs text-slt-green flex items-center gap-1">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-slt-green animate-pulse"></div>
+                            <div>
+                                <div class="font-medium text-white">Customer Support</div>
+                                <div class="flex items-center gap-1 text-xs text-slt-accent">
+                                    <span class="w-2 h-2 rounded-full bg-slt-accent"></span>
                                     Online
                                 </div>
                             </div>
                         </div>
 
                         <!-- Chat Messages -->
-                        <div class="p-4 space-y-3 bg-dark-bg/50 min-h-[280px]">
+                        <div class="p-4 space-y-4 bg-slt-ink/50" style="min-height: 300px;">
+                            <!-- Incoming message -->
                             <div class="flex justify-start">
-                                <div class="max-w-[80%] rounded-2xl rounded-bl-md px-4 py-2.5 bg-dark-card border border-glass-border">
-                                    <p class="text-text-primary text-sm">Hi! How can I help you today?</p>
-                                    <p class="text-xs text-text-secondary mt-1">09:30 AM</p>
+                                <div class="max-w-[75%] rounded-2xl px-4 py-2 bg-white/10 text-white">
+                                    <div>Hi! How can I help you today?</div>
+                                    <div class="text-[11px] text-slt-muted mt-1 text-right">09:30 AM</div>
                                 </div>
                             </div>
 
+                            <!-- Outgoing message -->
                             <div class="flex justify-end">
-                                <div class="max-w-[80%] rounded-2xl rounded-br-md px-4 py-2.5 bg-gradient-to-br from-slt-blue to-slt-blue/80 text-white">
-                                    <p class="text-sm">I'd like to know about your business plans</p>
-                                    <p class="text-xs text-white/60 mt-1 flex items-center justify-end gap-1">
-                                        09:31 AM
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                <div class="max-w-[75%] rounded-2xl px-4 py-2 bg-slt-primary text-white">
+                                    <div>I'd like to know about your business plans</div>
+                                    <div class="flex items-center justify-end gap-1 mt-1">
+                                        <span class="text-[11px] opacity-70">09:31 AM</span>
+                                        <svg class="w-3 h-3 opacity-70" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
                                         </svg>
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
 
+                            <!-- Incoming message -->
                             <div class="flex justify-start">
-                                <div class="max-w-[80%] rounded-2xl rounded-bl-md px-4 py-2.5 bg-dark-card border border-glass-border">
-                                    <p class="text-text-primary text-sm">Great choice! We have several packages starting from Rs. 2,500/month with unlimited messaging.</p>
-                                    <p class="text-xs text-text-secondary mt-1">09:32 AM</p>
+                                <div class="max-w-[75%] rounded-2xl px-4 py-2 bg-white/10 text-white">
+                                    <div>Great choice! We have several packages starting from Rs. 2,500/month with unlimited messaging.</div>
+                                    <div class="text-[11px] text-slt-muted mt-1 text-right">09:32 AM</div>
                                 </div>
                             </div>
 
+                            <!-- Outgoing message -->
                             <div class="flex justify-end">
-                                <div class="max-w-[80%] rounded-2xl rounded-br-md px-4 py-2.5 bg-gradient-to-br from-slt-blue to-slt-blue/80 text-white">
-                                    <p class="text-sm">That sounds perfect! Sign me up</p>
-                                    <p class="text-xs text-white/60 mt-1 flex items-center justify-end gap-1">
-                                        09:33 AM
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                <div class="max-w-[75%] rounded-2xl px-4 py-2 bg-slt-primary text-white">
+                                    <div>That sounds perfect! Sign me up</div>
+                                    <div class="flex items-center justify-end gap-1 mt-1">
+                                        <span class="text-[11px] opacity-70">09:33 AM</span>
+                                        <svg class="w-3 h-3 opacity-70" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
                                         </svg>
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Chat Input -->
-                        <div class="p-4 border-t border-glass-border bg-dark-card/50">
+                        <div class="p-4 border-t border-white/10 bg-white/5">
                             <div class="flex gap-3">
-                                <div class="flex-1 px-4 py-3 rounded-2xl bg-dark-bg border border-glass-border text-text-secondary text-sm">
-                                    Type a message...
-                                </div>
-                                <button class="px-4 py-3 rounded-2xl bg-gradient-to-r from-slt-blue to-slt-green text-white shadow-lg">
+                                <input type="text" placeholder="Type a message..." disabled
+                                    class="flex-1 rounded-2xl bg-white/5 border-white/10 text-white placeholder-slt-muted" />
+                                <button class="px-4 py-2 rounded-2xl bg-slt-accent text-white">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                                     </svg>
                                 </button>
                             </div>
@@ -194,155 +176,57 @@
                 </div>
             </div>
         </div>
-    </section>
 
-    <!-- Features Section -->
-    <section class="relative z-10 py-20 px-4 sm:px-6 lg:px-8 bg-dark-card/30">
-        <div class="max-w-7xl mx-auto">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl sm:text-4xl font-bold text-text-primary mb-4">
-                    Everything You Need to Connect
-                </h2>
-                <p class="text-text-secondary max-w-2xl mx-auto">
-                    Powerful features designed to help your business communicate effectively with customers through WhatsApp.
-                </p>
-            </div>
-
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Feature 1 -->
-                <div class="group p-6 rounded-2xl bg-glass-bg backdrop-blur-xl border border-glass-border hover:border-slt-blue/50 transition-all duration-300">
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slt-blue to-slt-green flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold text-text-primary mb-2">Real-time Messaging</h3>
-                    <p class="text-text-secondary">
-                        Send and receive messages instantly with automatic synchronization every 5 seconds.
-                    </p>
-                </div>
-
-                <!-- Feature 2 -->
-                <div class="group p-6 rounded-2xl bg-glass-bg backdrop-blur-xl border border-glass-border hover:border-slt-blue/50 transition-all duration-300">
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slt-blue to-slt-green flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold text-text-primary mb-2">Contact Management</h3>
-                    <p class="text-text-secondary">
-                        Organize and manage all your business contacts in one centralized dashboard.
-                    </p>
-                </div>
-
-                <!-- Feature 3 -->
-                <div class="group p-6 rounded-2xl bg-glass-bg backdrop-blur-xl border border-glass-border hover:border-slt-blue/50 transition-all duration-300">
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slt-blue to-slt-green flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold text-text-primary mb-2">Secure & Reliable</h3>
-                    <p class="text-text-secondary">
-                        Enterprise-grade security with end-to-end encryption powered by SLT infrastructure.
-                    </p>
-                </div>
-
-                <!-- Feature 4 -->
-                <div class="group p-6 rounded-2xl bg-glass-bg backdrop-blur-xl border border-glass-border hover:border-slt-blue/50 transition-all duration-300">
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slt-blue to-slt-green flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold text-text-primary mb-2">API Logs & Analytics</h3>
-                    <p class="text-text-secondary">
-                        Monitor all API calls, track message delivery, and analyze performance metrics.
-                    </p>
-                </div>
-
-                <!-- Feature 5 -->
-                <div class="group p-6 rounded-2xl bg-glass-bg backdrop-blur-xl border border-glass-border hover:border-slt-blue/50 transition-all duration-300">
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slt-blue to-slt-green flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold text-text-primary mb-2">Mobile Friendly</h3>
-                    <p class="text-text-secondary">
-                        Fully responsive design that works seamlessly on desktop, tablet, and mobile devices.
-                    </p>
-                </div>
-
-                <!-- Feature 6 -->
-                <div class="group p-6 rounded-2xl bg-glass-bg backdrop-blur-xl border border-glass-border hover:border-slt-blue/50 transition-all duration-300">
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slt-blue to-slt-green flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold text-text-primary mb-2">Instant Setup</h3>
-                    <p class="text-text-secondary">
-                        Get started in minutes with easy configuration and intuitive user interface.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="relative z-10 py-20 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-4xl mx-auto">
-            <div class="relative">
-                <div class="absolute inset-0 bg-gradient-to-r from-slt-blue/30 to-slt-green/30 rounded-3xl blur-2xl"></div>
-                <div class="relative bg-glass-bg backdrop-blur-xl rounded-3xl border border-glass-border p-8 sm:p-12 text-center">
-                    <div class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-slt-blue to-slt-green flex items-center justify-center mb-6 shadow-xl">
-                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                        </svg>
-                    </div>
-                    <h2 class="text-3xl sm:text-4xl font-bold text-text-primary mb-4">
-                        Ready to Transform Your Business Communication?
-                    </h2>
-                    <p class="text-text-secondary mb-8 max-w-2xl mx-auto">
-                        Join thousands of businesses across Sri Lanka who trust SLT WhatsApp for their customer communication needs.
-                    </p>
-                    @auth
-                        <a href="{{ route('chats.index') }}"
-                           class="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-slt-blue to-slt-green text-white font-semibold hover:opacity-90 transition-all shadow-xl">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+        <!-- Features Section -->
+        <div class="border-t border-white/10 py-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
+                        <div class="w-12 h-12 rounded-xl bg-slt-info/20 flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-slt-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
-                            Go to Dashboard
-                        </a>
-                    @else
-                        <a href="{{ route('register') }}"
-                           class="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-slt-blue to-slt-green text-white font-semibold hover:opacity-90 transition-all shadow-xl">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </div>
+                        <h3 class="text-lg font-semibold text-white mb-2">Auto-Sync Messaging</h3>
+                        <p class="text-slt-muted text-sm">Messages sync automatically every 5 seconds, keeping your conversations up to date in real-time.</p>
+                    </div>
+
+                    <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
+                        <div class="w-12 h-12 rounded-xl bg-slt-accent/20 flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-slt-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
-                            Get Started Now
-                        </a>
-                    @endauth
+                        </div>
+                        <h3 class="text-lg font-semibold text-white mb-2">Multi-Admin Chat Lock</h3>
+                        <p class="text-slt-muted text-sm">Prevent message conflicts with intelligent chat locking. Only one admin can respond at a time.</p>
+                    </div>
+
+                    <div class="p-6 rounded-2xl bg-white/5 border border-white/10">
+                        <div class="w-12 h-12 rounded-xl bg-slt-primary/20 flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-slt-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-white mb-2">API Logging</h3>
+                        <p class="text-slt-muted text-sm">Track all API calls with detailed logs including response times, status codes, and request data.</p>
+                    </div>
                 </div>
             </div>
         </div>
-    </section>
 
-    <!-- Footer -->
-    <footer class="relative z-10 py-12 px-4 sm:px-6 lg:px-8 border-t border-glass-border bg-dark-card/30">
-        <div class="max-w-7xl mx-auto">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-                <div class="flex items-center gap-3">
-                    <img src="/images/slt-logo.png" alt="SLT Logo" class="h-8 w-auto" />
-                    <span class="text-text-secondary text-sm">SLT WhatsApp Business Platform</span>
-                </div>
-
-                <div class="flex items-center gap-6 text-sm text-text-secondary">
-                    <span>&copy; {{ date('Y') }} SLT-Mobitel. All rights reserved.</span>
+        <!-- Footer -->
+        <footer class="border-t border-white/10 py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <img src="{{ asset('images/slt-logo.png') }}" alt="SLT" class="h-8 w-auto" />
+                        <span class="text-slt-muted text-sm">SLT WhatsApp Business API Demo</span>
+                    </div>
+                    <div class="text-slt-muted text-sm">
+                        &copy; {{ date('Y') }} SLT-Mobitel. All rights reserved.
+                    </div>
                 </div>
             </div>
-        </div>
-    </footer>
-</body>
+        </footer>
+    </body>
 </html>

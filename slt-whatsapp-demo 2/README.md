@@ -7,6 +7,59 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## SLT WhatsApp Demo (Chat + Auto Contact Sync)
+
+This demo app lets you:
+- View chats per contact
+- Sync inbound messages from the SLT WhatsApp API into MySQL
+- Reply from the web UI
+- **Auto-sync the last active mobile numbers** from:
+  `GET https://dpdlab2.slt.lk/getRecentActiveMobiles.php`
+
+### Configure
+
+Copy `.env.example` to `.env` and set:
+- `SLT_API_BASE` (default `https://dpdlab2.slt.lk`)
+- `SLT_API_USERNAME` / `SLT_API_PASSWORD` (if you want the app to login)
+- `SLT_PHONE_NUMBER_ID`
+
+If you already have a Bearer token (like you use with curl), you can skip `login.php` by setting:
+- `SLT_API_BEARER_TOKEN=...`
+
+### Run
+
+```bash
+composer install
+npm install
+npm run build
+
+php artisan key:generate
+php artisan migrate
+
+php artisan serve
+```
+
+### Auto-sync (recommended)
+
+Run the Laravel scheduler worker so the demo keeps itself updated:
+
+```bash
+php artisan schedule:work
+```
+
+This will run every minute:
+- `whatsapp:sync --limit=30` (messages)
+- `whatsapp:sync-contacts --limit=5` (last active mobiles)
+
+### Manual sync
+
+- From the UI, click **“Sync last 5”** to pull the latest 5 numbers into the contacts list.
+- Or via CLI:
+
+```bash
+php artisan whatsapp:sync-contacts --limit=5
+```
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
