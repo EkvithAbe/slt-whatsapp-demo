@@ -9,16 +9,34 @@
 @forelse($contacts as $c)
   @php
     $isActive = $activeContactId && (int) $c->id === (int) $activeContactId;
-    $hasUnread = false;
-    $preview = 'Live chat via API';
+    $hasUnread = (bool) $c->has_unread;
+    $unreadCount = (int) $c->unread_count;
+    $needsHuman = (bool) $c->needs_human;
+    $assignedAgentName = $c->humanHandoffAssignedTo?->name;
+    $lastActivityAt = $c->last_message_at ?? $c->updated_at;
+    $preview = $c->last_message_preview ?: 'Waiting for customer messages';
+    $previewPrefix = $c->last_message_direction === 'out' ? 'You: ' : 'Customer: ';
+    $notificationBody = $c->last_inbound_message_preview ?: $preview;
   @endphp
   <a href="{{ route('chats.show', $c) }}"
-     class="block p-4 transition-all {{ $isActive ? 'bg-white/10' : 'hover:bg-white/5' }}">
+     data-chat-contact-id="{{ $c->id }}"
+     data-contact-name="{{ $c->name ?? $c->mobile }}"
+     data-has-unread="{{ $hasUnread ? '1' : '0' }}"
+     data-unread-count="{{ $unreadCount }}"
+     data-human-handoff="{{ $needsHuman ? '1' : '0' }}"
+     data-latest-inbound-key="{{ $c->last_inbound_message_key ?? '' }}"
+     data-notification-body="{{ $notificationBody }}"
+     class="block p-4 transition-all {{ $isActive ? 'bg-white/10' : ($hasUnread ? 'bg-white/[0.07] hover:bg-white/10' : 'hover:bg-white/5') }}">
     <div class="flex {{ $alignClass }} gap-3">
       <div class="relative">
         <div class="w-10 h-10 rounded-full bg-slt-info flex items-center justify-center text-white font-semibold flex-shrink-0">
           {{ strtoupper(substr($c->name ?? $c->mobile, 0, 1)) }}
         </div>
+        @if($hasUnread)
+          <div class="absolute -bottom-1 -right-1 min-w-[1.25rem] h-5 px-1 rounded-full bg-slt-accent text-white text-[11px] font-semibold flex items-center justify-center border-2 border-slt-ink">
+            {{ $unreadCount }}
+          </div>
+        @endif
         @if($showLock && $c->locked_by_user_id)
           <div class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 flex items-center justify-center">
             <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -33,22 +51,31 @@
             {{ $c->name ?? $c->mobile }}
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
-            @if($c->updated_at)
+            @if($lastActivityAt)
               <div class="hidden sm:block text-[11px] {{ $hasUnread ? 'text-slt-accent' : 'text-slt-muted' }}">
-                {{ $c->updated_at->format('H:i') }}
+                {{ $lastActivityAt->format('H:i') }}
               </div>
-            @endif
-            @if($hasUnread)
-              <span class="min-w-[1.5rem] h-5 px-1.5 rounded-full bg-slt-accent text-white text-[11px] font-semibold flex items-center justify-center">
-                {{ $c->unread_count }}
-              </span>
             @endif
           </div>
         </div>
         @if($showPreview)
           <div class="text-sm truncate mt-0.5 {{ $hasUnread ? 'text-white' : 'text-slt-muted' }}">
-            {{ $preview }}
+            @if($c->last_message_preview)
+              {{ $previewPrefix }}{{ $preview }}
+            @else
+              {{ $preview }}
+            @endif
           </div>
+          @if($needsHuman)
+            <div class="mt-1 flex items-center gap-2 min-w-0">
+              <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold {{ $assignedAgentName ? 'bg-slt-accent/15 text-slt-accent' : 'bg-amber-500/15 text-amber-300' }}">
+                {{ $assignedAgentName ? 'Bot Paused' : 'Needs Human' }}
+              </span>
+              <span class="truncate text-[11px] text-slt-muted">
+                {{ $assignedAgentName ? 'Assigned to ' . $assignedAgentName : 'Customer asked for a human agent' }}
+              </span>
+            </div>
+          @endif
           <div class="flex items-center gap-1 mt-1 text-xs text-slt-muted">
             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -57,6 +84,11 @@
           </div>
         @else
           <div class="text-xs {{ $hasUnread ? 'text-white' : 'text-slt-muted' }}">{{ $c->mobile }}</div>
+          @if($needsHuman)
+            <div class="mt-1 text-[11px] text-amber-300">
+              {{ $assignedAgentName ? 'Assigned to ' . $assignedAgentName : 'Needs human reply' }}
+            </div>
+          @endif
         @endif
       </div>
       @if($showActive && $isActive)

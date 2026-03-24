@@ -1,3 +1,10 @@
+@php
+  $initialHumanHandoffChatCount = $contacts->filter(fn ($chatContact) => (bool) $chatContact->needs_human)->count();
+  $initialHumanHandoffUnreadMessageCount = $contacts->sum(
+      fn ($chatContact) => (bool) $chatContact->needs_human ? (int) $chatContact->unread_count : 0
+  );
+@endphp
+
 <x-app-layout>
   <div class="max-w-7xl mx-auto p-3 sm:p-4 chat-shell-height min-h-0" x-data="chatApp({{ $contact->id }})" x-init="init()">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full min-h-0">
@@ -5,12 +12,24 @@
       <div class="lg:col-span-1 rounded-2xl bg-white/5 border border-white/10 overflow-hidden flex flex-col h-full min-h-0"
            x-ref="sidebar"
            :class="sidebarOpen ? '' : 'hidden lg:block'">
-        <div class="p-4 border-b border-white/10 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-slt-accent"></span>
-            <span class="font-semibold text-white">Chats</span>
+        <div class="p-4 border-b border-white/10">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-slt-accent"></span>
+              <span class="font-semibold text-white">Chats</span>
+            </div>
+            <button class="lg:hidden px-3 py-2 rounded-xl border border-white/10 text-slt-muted hover:text-white" @click="sidebarOpen=false">Close</button>
           </div>
-          <button class="lg:hidden px-3 py-2 rounded-xl border border-white/10 text-slt-muted hover:text-white" @click="sidebarOpen=false">Close</button>
+          <div class="mt-3 grid grid-cols-2 gap-2">
+            <div class="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+              <div class="text-lg font-semibold text-white" data-chat-stat="human_handoff_chat_count">{{ $initialHumanHandoffChatCount }}</div>
+              <div class="text-[11px] text-slt-muted">Human chats</div>
+            </div>
+            <div class="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+              <div class="text-lg font-semibold text-white" data-chat-stat="human_handoff_unread_message_count">{{ $initialHumanHandoffUnreadMessageCount }}</div>
+              <div class="text-[11px] text-slt-muted">Unread msgs</div>
+            </div>
+          </div>
         </div>
 
         <!-- Sync Inbox Button -->
@@ -102,6 +121,22 @@
               <div class="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 whitespace-nowrap">
                 <span class="w-2 h-2 rounded-full" :class="online ? 'bg-slt-accent status-online' : 'bg-slt-muted'"></span>
                 <span class="text-sm" :class="online ? 'text-slt-accent' : 'text-slt-muted'" x-text="online ? 'Connected' : 'Offline'"></span>
+              </div>
+            </div>
+          </div>
+
+          <div x-show="handoff.active" x-transition class="flex flex-col gap-2 rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-3">
+            <div class="flex items-start gap-2">
+              <svg class="mt-0.5 w-5 h-5 flex-shrink-0 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div class="min-w-0">
+                <div class="text-sm font-medium text-amber-200" x-text="handoff.assigned_to_me
+                  ? 'Bot paused. This customer is switched to you.'
+                  : (handoff.assigned_to
+                    ? `Bot paused. Assigned to ${handoff.assigned_to}.`
+                    : 'Bot paused. Customer requested a human agent.')"></div>
+                <div class="mt-1 text-xs text-amber-100/80" x-show="handoff.message_preview" x-text="handoff.message_preview"></div>
               </div>
             </div>
           </div>
@@ -244,6 +279,18 @@
         sending: false,
         draft: '',
         messages: [],
+        contactName: @js($contact->name ?? $contact->mobile),
+        handoff: @js([
+          'active' => (bool) $contact->human_handoff_active,
+          'requested_at' => optional($contact->human_handoff_requested_at)->toIso8601String(),
+          'message_preview' => $contact->human_handoff_message_preview,
+          'assigned_to' => $contact->humanHandoffAssignedTo?->name,
+          'assigned_to_id' => $contact->human_handoff_assigned_user_id,
+          'assigned_to_me' => $contact->human_handoff_assigned_user_id
+            ? (int) $contact->human_handoff_assigned_user_id === (int) auth()->id()
+            : false,
+          'unread_count' => (int) $contact->unread_count,
+        ]),
         lock: { locked: false, locked_by: null, locked_by_me: false },
         lockNotice: '',
         pollMs: 5000,
@@ -265,6 +312,7 @@
         listLimit: {{ (int) $listLimit }},
         isFirstMessageLoad: true,
         forceMessageScrollToBottom: false,
+        lastInboundMessageKey: null,
 
         openSaveContact() {
           document.getElementById('saveContactModal').showModal();
@@ -285,6 +333,42 @@
           }));
         },
 
+        latestInboundMessage(messages = []) {
+          for (let index = messages.length - 1; index >= 0; index -= 1) {
+            const message = messages[index];
+            if (message?.direction === 'in' && String(message?.body || '').trim() !== '') {
+              return message;
+            }
+          }
+          return null;
+        },
+
+        inboundMessageKey(message) {
+          if (!message) return null;
+          return String(message.uuid || `${message.id || ''}|${message.sent_at || ''}|${message.body || ''}`) || null;
+        },
+
+        maybeNotifyIncomingMessage(messages = []) {
+          const latestInbound = this.latestInboundMessage(messages);
+          const nextKey = this.inboundMessageKey(latestInbound);
+          const previousKey = this.lastInboundMessageKey;
+          this.lastInboundMessageKey = nextKey;
+
+          if (!nextKey || !previousKey || nextKey === previousKey) {
+            return;
+          }
+
+          if (document.visibilityState === 'visible' && document.hasFocus()) {
+            return;
+          }
+
+          window.chatListNotifications?.notifyIncomingMessage(
+            `chat:active:${contactId}:${nextKey}`,
+            this.contactName,
+            String(latestInbound?.body || 'New customer message')
+          );
+        },
+
         applyLock(data = {}) {
           if (typeof data.locked === 'undefined' && typeof data.locked_by_me === 'undefined' && typeof data.locked_by === 'undefined') {
             return;
@@ -293,6 +377,22 @@
             locked: !!data.locked,
             locked_by: data.locked_by || null,
             locked_by_me: !!data.locked_by_me,
+          };
+        },
+
+        applyHandoff(data = {}) {
+          if (typeof data.active === 'undefined' && typeof data.assigned_to === 'undefined') {
+            return;
+          }
+
+          this.handoff = {
+            active: !!data.active,
+            requested_at: data.requested_at || null,
+            message_preview: data.message_preview || null,
+            assigned_to: data.assigned_to || null,
+            assigned_to_id: data.assigned_to_id || null,
+            assigned_to_me: !!data.assigned_to_me,
+            unread_count: Number.parseInt(String(data.unread_count ?? '0'), 10) || 0,
           };
         },
 
@@ -321,6 +421,10 @@
           await this.load();
           this.bindListInteractionHandlers();
           this.bindMessageInteractionHandlers();
+          window.chatListNotifications?.syncFromList(this.$refs.chatList, {
+            activeContactId: String(contactId),
+            initial: true,
+          });
           this.$nextTick(() => this.setListHeight());
           this.resizeHandler = () => this.setListHeight();
           window.addEventListener('resize', this.resizeHandler, { passive: true });
@@ -498,6 +602,9 @@
             this.$nextTick(() => {
               this.setListHeight();
               listEl.scrollTop = wasNearBottom ? listEl.scrollHeight : previousScrollTop;
+              window.chatListNotifications?.syncFromList(listEl, {
+                activeContactId: String(contactId),
+              });
             });
             this.clearError('refresh-list');
           } catch (e) {
@@ -515,6 +622,10 @@
               method: 'POST',
               headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
             });
+            this.handoff = {
+              ...this.handoff,
+              unread_count: 0,
+            };
           } finally {
             this.readMarking = false;
           }
@@ -541,6 +652,8 @@
               return;
             }
             this.messages = data.messages || [];
+            this.applyHandoff(data.handoff || {});
+            this.maybeNotifyIncomingMessage(this.messages);
             this.$nextTick(() => {
               const el = this.$refs.scroll;
               if (!el) return;

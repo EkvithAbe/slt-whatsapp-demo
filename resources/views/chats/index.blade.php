@@ -1,15 +1,34 @@
+@php
+  $initialHumanHandoffChatCount = $contacts->filter(fn ($contact) => (bool) $contact->needs_human)->count();
+  $initialHumanHandoffUnreadMessageCount = $contacts->sum(
+      fn ($contact) => (bool) $contact->needs_human ? (int) $contact->unread_count : 0
+  );
+@endphp
+
 <x-app-layout>
   <div class="max-w-7xl mx-auto p-3 sm:p-4 chat-shell-height min-h-0">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full min-h-0">
       <!-- Chat List Sidebar -->
       <div class="lg:col-span-1 rounded-2xl bg-white/5 border border-white/10 overflow-hidden flex flex-col h-full min-h-0">
-        <div class="p-4 border-b border-white/10 flex items-center justify-between gap-2">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-slt-accent"></span>
-            <span class="font-semibold text-white">Chats</span>
-          </div>
+        <div class="p-4 border-b border-white/10">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-slt-accent"></span>
+              <span class="font-semibold text-white">Chats</span>
+            </div>
 
-          <span class="text-xs text-slt-muted">Latest chats</span>
+            <span class="text-xs text-slt-muted">Latest chats</span>
+          </div>
+          <div class="mt-3 grid grid-cols-2 gap-2">
+            <div class="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+              <div class="text-lg font-semibold text-white" data-chat-stat="human_handoff_chat_count">{{ $initialHumanHandoffChatCount }}</div>
+              <div class="text-[11px] text-slt-muted">Human chats</div>
+            </div>
+            <div class="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+              <div class="text-lg font-semibold text-white" data-chat-stat="human_handoff_unread_message_count">{{ $initialHumanHandoffUnreadMessageCount }}</div>
+              <div class="text-[11px] text-slt-muted">Unread msgs</div>
+            </div>
+          </div>
         </div>
 
         <!-- Sync Inbox Button -->
@@ -107,6 +126,14 @@
       listEl.addEventListener('touchstart', pauseRefresh, { passive: true });
       listEl.addEventListener('wheel', forceListWheelScroll, { passive: false });
       listEl.addEventListener('scroll', pauseRefresh, { passive: true });
+      const seedNotifications = () => {
+        window.chatListNotifications?.syncFromList(listEl, { initial: true });
+      };
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', seedNotifications, { once: true });
+      } else {
+        setTimeout(seedNotifications, 0);
+      }
 
       const syncRecentContactsIfDue = async () => {
         const now = Date.now();
@@ -165,6 +192,7 @@
             (listEl.scrollHeight - (listEl.scrollTop + listEl.clientHeight)) < 24;
           listEl.innerHTML = nextHtml;
           listEl.scrollTop = wasNearBottom ? listEl.scrollHeight : previousScrollTop;
+          window.chatListNotifications?.syncFromList(listEl);
           clearError('refresh-list');
         } catch (e) {
           showError('Failed to refresh chat list.', 'refresh-list');

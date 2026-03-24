@@ -35,6 +35,10 @@ class ChatLockController extends Controller
 
             $c->locked_by_user_id = $userId;
             $c->locked_at = now();
+            $c->human_handoff_active = true;
+            $c->human_handoff_requested_at = $c->human_handoff_requested_at ?? now();
+            $c->human_handoff_assigned_user_id = $userId;
+            $c->human_handoff_assigned_at = now();
             $c->save();
             $c->load('lockedBy');
 

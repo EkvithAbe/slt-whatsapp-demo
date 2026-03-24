@@ -8,17 +8,90 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Contact extends Model
 {
-    protected $fillable = ['name', 'mobile', 'last_synced_at', 'last_read_at', 'locked_by_user_id', 'locked_at'];
+    protected $fillable = [
+        'name',
+        'mobile',
+        'last_synced_at',
+        'last_read_at',
+        'last_message_at',
+        'last_message_direction',
+        'last_message_preview',
+        'last_inbound_message_at',
+        'last_inbound_message_key',
+        'last_inbound_message_preview',
+        'unread_message_count',
+        'human_handoff_active',
+        'human_handoff_requested_at',
+        'human_handoff_message_key',
+        'human_handoff_message_preview',
+        'human_handoff_assigned_user_id',
+        'human_handoff_assigned_at',
+        'locked_by_user_id',
+        'locked_at',
+    ];
 
     protected $casts = [
         'last_synced_at' => 'datetime',
         'last_read_at' => 'datetime',
+        'last_message_at' => 'datetime',
+        'last_inbound_message_at' => 'datetime',
+        'human_handoff_active' => 'boolean',
+        'human_handoff_requested_at' => 'datetime',
+        'human_handoff_assigned_at' => 'datetime',
         'locked_at' => 'datetime',
     ];
+
+    public function getHasUnreadAttribute(): bool
+    {
+        if ($this->last_inbound_message_at && $this->last_read_at && !$this->last_inbound_message_at->gt($this->last_read_at)) {
+            return false;
+        }
+
+        if ($this->unread_message_count !== null) {
+            return (int) $this->unread_message_count > 0;
+        }
+
+        if (!$this->last_inbound_message_at) {
+            return false;
+        }
+
+        if (!$this->last_read_at) {
+            return true;
+        }
+
+        return $this->last_inbound_message_at->gt($this->last_read_at);
+    }
+
+    public function getUnreadCountAttribute(): int
+    {
+        if (!$this->has_unread) {
+            return 0;
+        }
+
+        if ($this->unread_message_count !== null) {
+            return max(0, (int) $this->unread_message_count);
+        }
+
+        return 1;
+    }
+
+    public function getNeedsHumanAttribute(): bool
+    {
+        return (bool) (
+            $this->human_handoff_active
+            || $this->human_handoff_requested_at
+            || $this->human_handoff_assigned_user_id
+        );
+    }
 
     public function lockedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'locked_by_user_id');
+    }
+
+    public function humanHandoffAssignedTo(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'human_handoff_assigned_user_id');
     }
 
     public function isLockExpired(): bool

@@ -20,7 +20,15 @@ class ChatController extends Controller
     private function contactsQuery()
     {
         // Message history is loaded live from SLT API, not from local messages table.
-        return Contact::query()->latest('updated_at');
+        return Contact::query()
+            ->with([
+                'lockedBy:id,name',
+                'humanHandoffAssignedTo:id,name',
+            ])
+            ->orderByDesc('human_handoff_active')
+            ->orderByRaw('COALESCE(unread_message_count, 0) DESC')
+            ->orderByRaw('COALESCE(last_message_at, updated_at) DESC')
+            ->latest('updated_at');
     }
 
     public function index()
@@ -33,6 +41,10 @@ class ChatController extends Controller
 
     public function show(Contact $contact)
     {
+        $contact->loadMissing([
+            'lockedBy:id,name',
+            'humanHandoffAssignedTo:id,name',
+        ]);
         $listLimit = $this->listLimit();
         $contacts = $this->contactsQuery()->limit($listLimit)->get();
         return view('chats.show', compact('contacts', 'contact', 'listLimit'));
