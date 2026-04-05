@@ -9,11 +9,6 @@ use Illuminate\Support\Str;
 
 class AdminSeeder extends Seeder
 {
-    /**
-     * Seed the application's database with default admin users.
-     *
-     * Default password: Admin@123 (change after first login).
-     */
     public function run(): void
     {
         $defaultPassword = 'Admin@123';
